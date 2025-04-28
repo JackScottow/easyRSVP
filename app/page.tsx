@@ -62,7 +62,7 @@ export default function LandingPage() {
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-3">
             <Card className="flex flex-col items-center text-center">
               <CardHeader>
-                <Calendar className="h-12 w-12 text-primary" />
+                <Calendar className="mx-auto w-12 h-12 text-primary" />
                 <CardTitle>Event Creation</CardTitle>
               </CardHeader>
               <CardContent>
@@ -71,7 +71,7 @@ export default function LandingPage() {
             </Card>
             <Card className="flex flex-col items-center text-center">
               <CardHeader>
-                <Users className="h-12 w-12 text-primary" />
+                <Users className="mx-auto w-12 h-12 text-primary" />
                 <CardTitle>RSVP Management</CardTitle>
               </CardHeader>
               <CardContent>
@@ -80,7 +80,7 @@ export default function LandingPage() {
             </Card>
             <Card className="flex flex-col items-center text-center">
               <CardHeader>
-                <QrCode className="h-12 w-12 text-primary" />
+                <QrCode className="mx-auto w-12 h-12 text-primary" />
                 <CardTitle>QR Code Sharing</CardTitle>
               </CardHeader>
               <CardContent>
