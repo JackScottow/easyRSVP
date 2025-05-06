@@ -35,14 +35,8 @@ export default function RegisterPage() {
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      // Add options here if you want to redirect after email confirmation
-      // or store extra data like username in metadata:
-      // options: {
-      //   emailRedirectTo: `${location.origin}/auth/callback`,
-      //   data: { username: yourUsernameState } // If keeping username field
-      // }
+      // No options property here for now
     });
-
     setIsLoading(false);
 
     if (signUpError) {

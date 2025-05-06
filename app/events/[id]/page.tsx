@@ -4,10 +4,22 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Calendar, Clock, MapPin, Share2 } from "lucide-react";
+import { cookies } from "next/headers";
 
 import prisma from "@/lib/prisma";
 import { rsvp_response } from "@prisma/client";
 import { format } from "date-fns";
+import { createClient } from "@/utils/supabase/server";
+import { ShareOptions } from "@/app/components/ShareOptions";
+import { ShareButton } from "@/app/components/ShareButton";
+import { APP_URL } from "@/lib/constants";
+
+// Add a type for params
+type EventPageParams = {
+  params: {
+    id: string;
+  };
+};
 
 // Function to fetch event data
 async function getEventData(id: string) {
@@ -17,18 +29,25 @@ async function getEventData(id: string) {
         id: id,
       },
       include: {
-        // Include RSVPs to calculate stats
-        rsvps: {
+        // Fetch the user_id associated with the event
+        user: {
           select: {
-            response: true, // Select only the response field
+            id: true,
           },
         },
-        // Optionally include user if needed (e.g., show creator)
-        // user: {
-        //   select: {
-        //     email: true, // Example: select user email
-        //   },
-        // },
+        // Include full RSVP details
+        rsvps: {
+          select: {
+            id: true, // Include RSVP ID
+            name: true, // Include responder's name
+            response: true, // Keep the response type
+            comment: true, // Include the comment
+            created_at: true, // Include timestamp
+          },
+          orderBy: {
+            created_at: "desc", // Order RSVPs by creation time
+          },
+        },
       },
     });
 
@@ -47,7 +66,8 @@ async function getEventData(id: string) {
       { yes: 0, no: 0, maybe: 0 }
     );
 
-    // Return event data along with calculated counts
+    // Return event data along with calculated counts and full rsvps
+    // Note: event now includes event.user.id and event.rsvps has full details
     return { ...event, rsvpCounts };
   } catch (error) {
     console.error("Failed to fetch event:", error);
@@ -57,10 +77,65 @@ async function getEventData(id: string) {
   }
 }
 
-// Make page component async
-export default async function EventDetailPage({ params }: { params: { id: string } }) {
-  // Fetch the event data
+// Generate metadata for the page to properly handle the dynamic params
+export async function generateMetadata({ params }: EventPageParams) {
+  try {
+    const event = await getEventData(params.id);
+    const eventUrl = `${APP_URL}/events/${event.id}`;
+    const rsvpUrl = `${eventUrl}/rsvp`;
+
+    return {
+      title: event.title,
+      description: event.description || `RSVP for ${event.title}`,
+      openGraph: {
+        title: `RSVP for ${event.title}`,
+        description: event.description || `RSVP for ${event.title}`,
+        type: "website",
+        url: rsvpUrl,
+        siteName: "RSVP App",
+        images: [
+          {
+            url: `${APP_URL}/api/og?title=${encodeURIComponent(event.title)}&date=${encodeURIComponent(format(new Date(event.event_date), "EEEE, MMMM d, yyyy"))}`,
+            width: 1200,
+            height: 630,
+            alt: event.title,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `RSVP for ${event.title}`,
+        description: event.description || `RSVP for ${event.title}`,
+        images: [`${APP_URL}/api/og?title=${encodeURIComponent(event.title)}&date=${encodeURIComponent(format(new Date(event.event_date), "EEEE, MMMM d, yyyy"))}`],
+      },
+    };
+  } catch (error) {
+    return {
+      title: "Event Details",
+      description: "View event details and RSVP",
+    };
+  }
+}
+
+// Make page component async and handle params properly
+export default async function EventDetailPage({ params }: EventPageParams) {
+  // Make sure to await all async operations
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Get the event data using the ID from params
   const event = await getEventData(params.id);
+
+  const isOwner = user?.id === event.user?.id;
+
+  const getRsvpsByType = (responseType: rsvp_response) => event.rsvps.filter((rsvp) => rsvp.response === responseType);
+
+  // Store the event ID for use in links
+  const eventUrl = `/events/${event.id}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,13 +180,14 @@ export default async function EventDetailPage({ params }: { params: { id: string
 
             <div className="flex flex-wrap gap-3">
               <Button asChild>
-                <Link href={`/events/${params.id}/rsvp`}>RSVP to Event</Link>
+                <Link href={`${eventUrl}/rsvp`}>RSVP to Event</Link>
               </Button>
-              <Button variant="outline">
-                <Share2 className="mr-2 h-4 w-4" />
-                Share Event
-              </Button>
+              {!isOwner && <ShareButton eventId={event.id} eventTitle={event.title} eventDate={new Date(event.event_date)} eventLocation={event.location || undefined} />}
+              {isOwner && <Button variant="secondary">Manage Event</Button>}
             </div>
+
+            {/* Add ShareOptions component only for owners */}
+            {isOwner && <ShareOptions eventId={event.id} eventTitle={event.title} eventDate={new Date(event.event_date)} eventLocation={event.location || undefined} eventDescription={event.description || undefined} />}
           </div>
 
           <div className="space-y-6">
@@ -142,19 +218,92 @@ export default async function EventDetailPage({ params }: { params: { id: string
               </CardContent>
             </Card>
 
+            {!isOwner && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>QR Code</CardTitle>
+                  <CardDescription>Scan to RSVP</CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center">
+                  <div className="relative h-48 w-48 flex items-center justify-center">
+                    <div className="p-2 border bg-white">
+                      <div id="qr-code-container" data-url={`${APP_URL}/events/${event.id}/rsvp`}></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+
+        {isOwner && (
+          <div className="mt-10 space-y-6">
+            <h2 className="text-2xl font-semibold tracking-tight border-b pb-2">Detailed RSVP Responses</h2>
+
             <Card>
               <CardHeader>
-                <CardTitle>QR Code</CardTitle>
-                <CardDescription>Scan to RSVP</CardDescription>
+                <CardTitle className="text-green-600">Yes ({getRsvpsByType(rsvp_response.yes).length})</CardTitle>
               </CardHeader>
-              <CardContent className="flex justify-center">
-                <div className="relative h-48 w-48">
-                  <Image src="/placeholder.svg?height=200&width=200" alt="QR Code placeholder" width={200} height={200} className="border p-2" />
-                </div>
+              <CardContent>
+                {getRsvpsByType(rsvp_response.yes).length > 0 ? (
+                  <ul className="space-y-3">
+                    {getRsvpsByType(rsvp_response.yes).map((rsvp) => (
+                      <li key={rsvp.id} className="border-b pb-3 last:border-b-0">
+                        <p className="font-medium">{rsvp.name}</p>
+                        {rsvp.comment && <p className="text-sm text-muted-foreground mt-1 italic">"{rsvp.comment}"</p>}
+                        <p className="text-xs text-muted-foreground mt-1">{rsvp.created_at ? format(new Date(rsvp.created_at), "PPpp") : "Date not available"}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground">No 'Yes' responses yet.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-amber-600">Maybe ({getRsvpsByType(rsvp_response.maybe).length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {getRsvpsByType(rsvp_response.maybe).length > 0 ? (
+                  <ul className="space-y-3">
+                    {getRsvpsByType(rsvp_response.maybe).map((rsvp) => (
+                      <li key={rsvp.id} className="border-b pb-3 last:border-b-0">
+                        <p className="font-medium">{rsvp.name}</p>
+                        {rsvp.comment && <p className="text-sm text-muted-foreground mt-1 italic">"{rsvp.comment}"</p>}
+                        <p className="text-xs text-muted-foreground mt-1">{rsvp.created_at ? format(new Date(rsvp.created_at), "PPpp") : "Date not available"}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground">No 'Maybe' responses yet.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-red-600">No ({getRsvpsByType(rsvp_response.no).length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {getRsvpsByType(rsvp_response.no).length > 0 ? (
+                  <ul className="space-y-3">
+                    {getRsvpsByType(rsvp_response.no).map((rsvp) => (
+                      <li key={rsvp.id} className="border-b pb-3 last:border-b-0">
+                        <p className="font-medium">{rsvp.name}</p>
+                        {rsvp.comment && <p className="text-sm text-muted-foreground mt-1 italic">"{rsvp.comment}"</p>}
+                        <p className="text-xs text-muted-foreground mt-1">{rsvp.created_at ? format(new Date(rsvp.created_at), "PPpp") : "Date not available"}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground">No 'No' responses yet.</p>
+                )}
               </CardContent>
             </Card>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );

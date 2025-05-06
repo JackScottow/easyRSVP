@@ -6,25 +6,7 @@ import { Calendar, Users, QrCode, ArrowRight } from "lucide-react";
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* Navigation */}
-      <header className="border-b">
-        <div className="container flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">EasyRSVP</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium hover:underline">
-              Login
-            </Link>
-            <Button asChild size="sm">
-              <Link href="/register">Sign Up Free</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-
+    <main>
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-background to-muted/30 py-12 md:py-20 lg:py-32">
         <div className="container px-4 md:px-6">
@@ -185,7 +167,7 @@ export default function LandingPage() {
           <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} EasyRSVP. All rights reserved.</p>
         </div>
       </footer>
-    </div>
+    </main>
   );
 }
 
