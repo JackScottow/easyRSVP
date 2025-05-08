@@ -129,7 +129,7 @@ END:VCALENDAR`;
   };
 
   return (
-    <Card className="mt-6">
+    <Card className="mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center">
           <Share2 className="mr-2 h-5 w-5" />
