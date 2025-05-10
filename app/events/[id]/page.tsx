@@ -172,7 +172,7 @@ export default async function EventDetailPage({ params }: EventPageParams) {
 
       <main className="container max-w-4xl px-4 py-6 md:py-10">
         <div className="grid gap-6 md:grid-cols-3">
-          <div className="md:col-span-2 space-y-6">
+          <div className="md:col-span-2 space-y-6   ">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
               <div className="mt-2 flex flex-col gap-2 text-muted-foreground">
@@ -222,7 +222,7 @@ export default async function EventDetailPage({ params }: EventPageParams) {
             </div>
           </div>
 
-          <div className="space-y-6 md:col-span-1">
+          <div className="space-y-6 md:col-span-1 my-auto">
             <Card>
               <CardHeader>
                 <CardTitle>RSVP Stats</CardTitle>

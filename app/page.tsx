@@ -4,30 +4,36 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, QrCode, ArrowRight } from "lucide-react";
 
+interface Testimonial {
+  name: string;
+  role: string;
+  quote: string;
+}
+
 export default function LandingPage() {
   return (
     <main>
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-background to-muted/30 py-12 md:py-20 lg:py-32">
+      <section className="bg-gradient-to-b from-background to-secondary/10 py-12 md:py-20 lg:py-32">
         <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
             <div className="flex flex-col justify-center space-y-4">
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">Simplify Event Planning & RSVPs</h1>
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl text-secondary">Simplify Event Planning & RSVPs</h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">Create events, collect RSVPs, and manage attendees all in one place. The easiest way to plan your next gathering.</p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Button size="lg" asChild>
                   <Link href="/register">Get Started</Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild>
+                <Button size="lg" variant="outline" className="border-secondary text-secondary hover:bg-secondary hover:text-white" asChild>
                   <Link href="#features">Learn More</Link>
                 </Button>
               </div>
             </div>
             <div className="flex items-center justify-center">
-              <div className="relative h-[350px] w-full max-w-[500px] overflow-hidden rounded-lg shadow-xl">
-                <Image src="/placeholder.svg?height=700&width=1000" alt="EasyRSVP Dashboard" fill className="object-cover" priority />
+              <div className="relative h-[350px] w-full max-w-[500px] overflow-hidden rounded-lg shadow-xl bg-white">
+                <Image src="/hero.png" alt="EasyRSVP Dashboard" fill className="object-contain p-4" priority />
               </div>
             </div>
           </div>
@@ -38,7 +44,7 @@ export default function LandingPage() {
       <section id="features" className="py-12 md:py-20">
         <div className="container px-4 md:px-6">
           <div className="mx-auto flex max-w-[58rem] flex-col items-center justify-center gap-4 text-center">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Features</h2>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-secondary">Features</h2>
             <p className="max-w-[85%] text-muted-foreground md:text-xl">Everything you need to manage your events and collect RSVPs efficiently.</p>
           </div>
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-3">
@@ -74,7 +80,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section className="bg-muted/50 py-12 md:py-20">
+      <section className="bg-secondary/5 py-12 md:py-20">
         <div className="container px-4 md:px-6">
           <div className="mx-auto flex max-w-[58rem] flex-col items-center justify-center gap-4 text-center">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">How It Works</h2>
@@ -108,12 +114,12 @@ export default function LandingPage() {
             <p className="max-w-[85%] text-muted-foreground md:text-xl">Don't just take our word for it. Here's what people are saying about our app.</p>
           </div>
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-3">
-            {testimonials.map((testimonial, index) => (
+            {testimonials.map((testimonial: Testimonial, index: number) => (
               <Card key={index} className="h-full">
                 <CardHeader>
                   <div className="flex items-center gap-4">
                     <div className="relative h-12 w-12 overflow-hidden rounded-full">
-                      <Image src={`/placeholder.svg?height=100&width=100&text=${testimonial.name.charAt(0)}`} alt={testimonial.name} fill className="object-cover" />
+                      <Image src={`/user${index + 1}.png`} alt={testimonial.name} fill className="object-cover" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">{testimonial.name}</CardTitle>
@@ -145,46 +151,24 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t py-6 md:py-0">
-        <div className="container flex flex-col items-center justify-between gap-4 px-4 md:h-24 md:flex-row">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            <span className="text-lg font-semibold">EasyRSVP</span>
-          </div>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <Link href="#" className="hover:underline">
-              Terms
-            </Link>
-            <Link href="#" className="hover:underline">
-              Privacy
-            </Link>
-            <Link href="#" className="hover:underline">
-              Contact
-            </Link>
-          </div>
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} EasyRSVP. All rights reserved.</p>
-        </div>
-      </footer>
     </main>
   );
 }
 
 // Sample testimonial data
-const testimonials = [
+const testimonials: Testimonial[] = [
   {
-    name: "Sarah Johnson",
+    name: "Michael Johnson",
     role: "Event Planner",
     quote: "This app has completely transformed how I manage RSVPs for my clients' events. The QR code feature is a game-changer!",
   },
   {
-    name: "Michael Chen",
+    name: "Lisa Smith",
     role: "Wedding Coordinator",
     quote: "I've tried many RSVP tools, but this one stands out for its simplicity and powerful features. My couples love it!",
   },
   {
-    name: "Jessica Williams",
+    name: "Shaun Williams",
     role: "Corporate Event Manager",
     quote: "Managing attendees for our company events used to be a nightmare. This app has made the process so much easier.",
   },
