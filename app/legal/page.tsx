@@ -3,8 +3,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function LegalPage() {
+function LegalContent() {
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "terms";
 
@@ -129,5 +130,13 @@ export default function LegalPage() {
         </Tabs>
       </div>
     </main>
+  );
+}
+
+export default function LegalPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LegalContent />
+    </Suspense>
   );
 }

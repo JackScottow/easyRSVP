@@ -15,6 +15,7 @@ import { ShareButton } from "@/app/components/ShareButton";
 import { AddManualRsvpModal } from "@/app/components/AddManualRsvpModal";
 import { APP_URL } from "@/lib/constants";
 import { EditRsvpButtons } from "@/app/components/EditRsvpButtons";
+import { EditEventModal } from "@/app/components/EditEventModal";
 
 // Add a type for params
 type EventPageParams = {
@@ -211,9 +212,7 @@ export default async function EventDetailPage({ params }: EventPageParams) {
               )}
               {isOwner && (
                 <>
-                  <Button variant="secondary" className="flex-1">
-                    Manage Event
-                  </Button>
+                  <EditEventModal event={event} />
                   <Button variant="outline" className="flex-1" asChild>
                     <AddManualRsvpModal eventId={event.id} />
                   </Button>
