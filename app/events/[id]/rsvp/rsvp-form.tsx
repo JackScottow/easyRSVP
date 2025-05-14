@@ -4,7 +4,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { rsvp_response } from "@prisma/client"; // Import enum for form values
+// import { rsvp_response } from "@prisma/client"; // Import enum for form values
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,13 @@ import { useToast } from "@/components/ui/use-toast";
 
 // Import the server action and state type
 import { submitRsvpAction, type RsvpFormState } from "./_actions";
+
+// Define a local enum to match the server-side rsvp_response
+export enum rsvp_response {
+  yes = "yes",
+  no = "no",
+  maybe = "maybe",
+}
 
 // Submit button component
 function SubmitButton() {
