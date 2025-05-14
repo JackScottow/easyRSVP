@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { rsvp_response } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ThumbsDown, ThumbsUp, HelpCircle, Pencil } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+
+export enum rsvp_response {
+  yes = "yes",
+  no = "no",
+  maybe = "maybe",
+}
 
 interface RsvpData {
   id: string;

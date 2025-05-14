@@ -49,6 +49,16 @@ export function createClient(cookieStore: ReadonlyRequestCookies) {
           }
         },
       },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+      global: {
+        headers: {
+          apikey: supabaseAnonKey,
+        },
+      },
     });
   } catch (error) {
     console.error("Error creating Supabase server client:", error);

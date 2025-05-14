@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { rsvp_response } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -13,6 +12,12 @@ import { toast } from "@/components/ui/use-toast";
 
 interface AddManualRsvpModalProps {
   eventId: string;
+}
+
+export enum rsvp_response {
+  yes = "yes",
+  no = "no",
+  maybe = "maybe",
 }
 
 export function AddManualRsvpModal({ eventId }: AddManualRsvpModalProps) {

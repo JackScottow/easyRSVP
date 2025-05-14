@@ -45,25 +45,46 @@ function LoginContent() {
     setError(null);
     setIsLoading(true);
 
-    try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    let retryCount = 0;
+    const maxRetries = 3;
 
-      if (signInError) {
-        setError(signInError.message);
-      } else {
-        // Redirect to the original requested page or dashboard by default
-        router.push(redirectPath);
-        router.refresh(); // Force refresh to update server-side session state
+    while (retryCount < maxRetries) {
+      try {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) {
+          if (signInError.message.includes("503") || signInError.message.includes("Service Unavailable")) {
+            retryCount++;
+            if (retryCount < maxRetries) {
+              // Wait for 1 second before retrying
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+              continue;
+            }
+          }
+          setError(signInError.message);
+          break;
+        } else {
+          // Login successful
+          router.push(redirectPath);
+          router.refresh();
+          break;
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        retryCount++;
+        if (retryCount < maxRetries) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          continue;
+        }
+        setError("An unexpected error occurred during login. Please try again.");
+        break;
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      setError("An unexpected error occurred during login. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
   if (clientInitError) {

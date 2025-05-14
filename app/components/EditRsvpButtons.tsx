@@ -3,7 +3,12 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { EditManualRsvpModal } from "@/app/components/EditManualRsvpModal";
-import { rsvp_response } from "@prisma/client";
+
+export enum rsvp_response {
+  yes = "yes",
+  no = "no",
+  maybe = "maybe",
+}
 
 export function EditRsvpButtons() {
   useEffect(() => {
