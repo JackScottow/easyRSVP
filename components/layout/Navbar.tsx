@@ -12,21 +12,16 @@ const Navbar = async () => {
 
   try {
     const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+    const { data, error } = await supabase.auth.getUser();
 
-    try {
-      const supabase = createClient(cookieStore);
-      const { data, error } = await supabase.auth.getUser();
-
-      if (error) {
-        console.error("Error in Navbar authentication:", error.message);
-      } else {
-        user = data.user;
-      }
-    } catch (clientError) {
-      console.error("Failed to initialize Supabase client:", clientError);
+    if (error) {
+      console.error("Error in Navbar authentication:", error.message);
+    } else {
+      user = data.user;
     }
-  } catch (cookieError) {
-    console.error("Failed to access cookies:", cookieError);
+  } catch (clientError) {
+    console.error("Failed to initialize Supabase client:", clientError);
   }
 
   return (

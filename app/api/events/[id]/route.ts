@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
     const {
@@ -29,7 +29,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
 
     const body = await request.json();
-    const { title, description, event_date, location } = body;
+
+    const { title, description, event_date, location, image_url } = body;
 
     const updatedEvent = await prisma.event.update({
       where: { id: params.id },
@@ -38,6 +39,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         description,
         event_date: new Date(event_date),
         location,
+        image_url: image_url || null,
       },
     });
 

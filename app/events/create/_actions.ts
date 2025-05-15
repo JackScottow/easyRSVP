@@ -17,6 +17,7 @@ const CreateEventSchema = z
     // Combine date and time strings, then refine to ensure it's a valid date
     event_date: z.string().min(1, "Date is required."),
     event_time: z.string().min(1, "Time is required."),
+    image_url: z.string().optional(), // Add image_url to schema
   })
   .refine(
     (data) => {
@@ -38,6 +39,7 @@ export type CreateEventFormState = {
     description?: string[];
     location?: string[]; // Add location errors
     event_date?: string[]; // Includes time validation error
+    image_url?: string[]; // Add image_url errors
     _form?: string[]; // General form errors
   };
   success: boolean;
@@ -66,10 +68,10 @@ export async function createEventAction(prevState: CreateEventFormState, formDat
     location: formData.get("location"), // Get location from form data
     event_date: formData.get("event_date"),
     event_time: formData.get("event_time"),
+    image_url: formData.get("image_url"), // Get image_url from form data
   });
 
   if (!validatedFields.success) {
-    console.error("Validation Errors:", validatedFields.error.flatten().fieldErrors);
     return {
       message: "Validation failed. Please check the fields below.", // Clearer message
       errors: validatedFields.error.flatten().fieldErrors,
@@ -78,7 +80,7 @@ export async function createEventAction(prevState: CreateEventFormState, formDat
   }
 
   // 3. Combine date and time and create event
-  const { title, description, location, event_date, event_time } = validatedFields.data;
+  const { title, description, location, event_date, event_time, image_url } = validatedFields.data;
   const eventDateTime = new Date(`${event_date}T${event_time}`);
 
   try {
@@ -89,10 +91,10 @@ export async function createEventAction(prevState: CreateEventFormState, formDat
         location: location, // Add location to create data
         event_date: eventDateTime,
         user_id: user.id, // Associate with logged-in user
+        image_url: image_url || null, // Save image_url if provided
       },
     });
   } catch (error) {
-    console.error("Database Error:", error);
     // Consider more specific error handling if needed
     return {
       message: "Database Error: Failed to create event. Please try again.",

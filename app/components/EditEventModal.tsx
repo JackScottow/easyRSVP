@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { createSupabaseBrowserClient } from "@/utils/supabase/client";
+import imageCompression from "browser-image-compression";
 
 interface EditEventModalProps {
   event: {
@@ -17,6 +19,7 @@ interface EditEventModalProps {
     description: string | null;
     event_date: Date;
     location: string | null;
+    image_url?: string;
   };
 }
 
@@ -31,11 +34,87 @@ export function EditEventModal({ event }: EditEventModalProps) {
     event_time: format(new Date(event.event_date), "HH:mm"),
     location: event.location || "",
   });
+  const [imageUrl, setImageUrl] = useState(event.image_url || "");
+  const [showCropper, setShowCropper] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Handle image file selection and upload immediately
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const supabase = createSupabaseBrowserClient();
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    console.log("Current user:", userData, userError);
+    // Delete old image if it exists
+    if (imageUrl) {
+      // Remove cache busting if present
+      const cleanUrl = imageUrl.split("?")[0];
+      // Extract the file path after the bucket name
+      const idx = cleanUrl.indexOf("/event-images/");
+      if (idx !== -1) {
+        const filePath = cleanUrl.substring(idx + "/event-images/".length);
+        if (filePath) {
+          const { error: removeError } = await supabase.storage.from("event-images").remove([filePath]);
+          if (removeError) {
+            console.warn("Failed to delete old image:", removeError.message);
+          }
+        }
+      }
+    }
+    // Compress the image
+    const compressedFile = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1200, useWebWorker: true });
+    console.log("Uploading file:", {
+      name: compressedFile.name,
+      size: compressedFile.size,
+      type: compressedFile.type,
+    });
+    const filePath = `events/${event.id}.jpg`;
+    const { error, data } = await supabase.storage.from("event-images").upload(filePath, compressedFile, { upsert: true });
+    console.log("Supabase upload result:", { data, error, filePath });
+    if (error) {
+      toast.error("Image upload failed: " + error.message);
+      setUploading(false);
+      return;
+    }
+    const { data: publicUrlData } = supabase.storage.from("event-images").getPublicUrl(filePath);
+    setImageUrl(publicUrlData.publicUrl + `?t=${Date.now()}`); // cache busting
+    setUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // Handle image removal
+  const handleRemoveImage = async () => {
+    if (!imageUrl) return;
+    setUploading(true);
+    const supabase = createSupabaseBrowserClient();
+    // Remove cache busting if present
+    const cleanUrl = imageUrl.split("?")[0];
+    const idx = cleanUrl.indexOf("/event-images/");
+    if (idx !== -1) {
+      const filePath = cleanUrl.substring(idx + "/event-images/".length);
+      if (filePath) {
+        const { error: removeError } = await supabase.storage.from("event-images").remove([filePath]);
+        if (removeError) {
+          toast.error("Failed to delete image: " + removeError.message);
+        } else {
+          setImageUrl("");
+          toast.success("Image removed!");
+        }
+      }
+    }
+    setUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       const response = await fetch(`/api/events/${event.id}`, {
         method: "PATCH",
@@ -47,13 +126,12 @@ export function EditEventModal({ event }: EditEventModalProps) {
           description: formData.description,
           event_date: new Date(`${formData.event_date}T${formData.event_time}`).toISOString(),
           location: formData.location,
+          image_url: imageUrl || null,
         }),
       });
-
       if (!response.ok) {
         throw new Error("Failed to update event");
       }
-
       toast.success("Event updated successfully");
       setOpen(false);
       router.refresh();
@@ -72,7 +150,7 @@ export function EditEventModal({ event }: EditEventModalProps) {
           Edit Event
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Edit Event</DialogTitle>
@@ -99,10 +177,21 @@ export function EditEventModal({ event }: EditEventModalProps) {
               <Label htmlFor="location">Location</Label>
               <Input id="location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="Enter event location" />
             </div>
+            <div className="grid gap-2">
+              <Label>Event Image</Label>
+              {imageUrl ? <img src={imageUrl} alt="Event" className="rounded mb-2 w-full max-w-full h-auto" style={{ display: "block", margin: "0 auto" }} /> : <div className="rounded bg-muted flex items-center justify-center mb-2 max-h-32 w-full h-24 text-muted-foreground text-sm">No image</div>}
+              <Input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} ref={fileInputRef} />
+              {uploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
+              {imageUrl && (
+                <Button type="button" variant="destructive" onClick={handleRemoveImage} disabled={uploading}>
+                  Remove Image
+                </Button>
+              )}
+            </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save Changes"}
+            <Button type="submit" disabled={isLoading || uploading}>
+              {isLoading ? "Saving..." : uploading ? "Uploading Image..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </form>

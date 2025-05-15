@@ -11,7 +11,7 @@ async function getEventForRsvp(id: string) {
   try {
     const event = await prisma.event.findUnique({
       where: { id },
-      select: { title: true, event_date: true, location: true }, // Select only needed fields
+      select: { title: true, event_date: true, location: true, image_url: true }, // Select image_url
     });
     if (!event) notFound();
     return event;

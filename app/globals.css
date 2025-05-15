@@ -1,3 +1,4 @@
+@import url("https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

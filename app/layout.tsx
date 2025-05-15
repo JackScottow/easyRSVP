@@ -26,6 +26,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.min.css" />
+      </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased", openSans.className)}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <Navbar />

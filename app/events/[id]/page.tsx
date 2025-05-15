@@ -44,6 +44,7 @@ type EventWithDetails = {
   user_id: string;
   created_at: Date | null;
   location: string | null;
+  image_url?: string | null;
   rsvps: RsvpData[];
   rsvpCounts: {
     yes: number;
@@ -56,10 +57,16 @@ type EventWithDetails = {
 async function getEventData(id: string): Promise<EventWithDetails> {
   try {
     const event = await prisma.event.findUnique({
-      where: {
-        id: id,
-      },
-      include: {
+      where: { id: id },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        event_date: true,
+        user_id: true,
+        created_at: true,
+        location: true,
+        image_url: true,
         rsvps: {
           select: {
             id: true,
@@ -172,6 +179,15 @@ export default async function EventDetailPage({ params }: EventPageParams) {
       </header>
 
       <main className="container max-w-4xl px-4 py-6 md:py-10">
+        {event.image_url ? (
+          <div className="mb-6 flex justify-center">
+            <img src={event.image_url} alt="Event" className="rounded-lg w-1/2 max-w-2xl h-auto shadow" style={{ display: "block", margin: "0 auto" }} />
+          </div>
+        ) : (
+          <div className="mb-6 flex justify-center">
+            <div className="rounded-lg bg-muted flex items-center justify-center max-h-80 w-full max-w-2xl h-60 text-muted-foreground text-lg">No event image</div>
+          </div>
+        )}
         <div className="grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2 space-y-6   ">
             <div>
@@ -212,7 +228,7 @@ export default async function EventDetailPage({ params }: EventPageParams) {
               )}
               {isOwner && (
                 <>
-                  <EditEventModal event={event} />
+                  <EditEventModal event={{ ...event, image_url: event.image_url ?? undefined }} />
                   <Button variant="outline" className="flex-1" asChild>
                     <AddManualRsvpModal eventId={event.id} />
                   </Button>

@@ -100,7 +100,6 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (e) {
-    console.log(`Error generating image: ${e}`);
     return new Response(`Error generating image`, {
       status: 500,
     });

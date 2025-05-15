@@ -6,8 +6,6 @@ export function createSupabaseBrowserClient() {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     // Debug logging
-    console.log("Supabase URL available:", !!supabaseUrl);
-    console.log("Supabase Anon Key available:", !!supabaseAnonKey);
 
     if (!supabaseUrl) {
       console.error("Missing environment variable: NEXT_PUBLIC_SUPABASE_URL");

@@ -14,6 +14,7 @@ type Event = {
   yesCount: number;
   noCount: number;
   maybeCount: number;
+  image_url?: string;
 };
 
 export default async function DashboardPage() {
@@ -28,10 +29,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const { data: baseEvents, error: eventsError } = await supabase.from("events").select("id, title, event_date").eq("user_id", user.id).order("event_date", { ascending: false });
-
-  console.log("Fetched Base Events:", baseEvents);
-  console.log("Fetch Error (Events):", eventsError);
+  const { data: baseEvents, error: eventsError } = await supabase.from("events").select("id, title, event_date, image_url").eq("user_id", user.id).order("event_date", { ascending: false });
 
   if (eventsError) {
     console.error("Error fetching events (handled):", eventsError.message);
@@ -46,8 +44,6 @@ export default async function DashboardPage() {
 
   if (eventIds.length > 0) {
     const { data: rsvps, error: rsvpsError } = await supabase.from("rsvps").select("event_id, response").in("event_id", eventIds).in("response", ["yes", "no", "maybe"]);
-    console.log("Fetched RSVPs:", rsvps);
-    console.log("Fetch Error (RSVPs):", rsvpsError);
 
     if (rsvpsError) {
       console.error("Error fetching RSVPs (handled):", rsvpsError.message);
@@ -103,6 +99,7 @@ export default async function DashboardPage() {
               <Link key={event.id} href={`/events/${event.id}`} className="block">
                 <Card className="h-full transition-all hover:shadow-md">
                   <CardHeader>
+                    {event.image_url ? <img src={event.image_url} alt="Event" className="rounded mb-2 w-full max-w-full h-auto" style={{ display: "block", margin: "0 auto" }} /> : <div className="rounded bg-muted flex items-center justify-center mb-2 max-h-32 w-full h-24 text-muted-foreground text-sm">No image</div>}
                     <CardTitle className="line-clamp-1">{event.title}</CardTitle>
                   </CardHeader>
                   <CardContent>

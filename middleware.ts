@@ -81,7 +81,6 @@ export async function middleware(request: NextRequest) {
 
       // For protected routes, redirect to login if not authenticated
       if (isProtectedRoute && (!user || error)) {
-        console.log(`Redirecting unauthenticated user from protected route: ${pathname}`);
         const redirectUrl = new URL("/login", request.url);
 
         // Add the original URL as a parameter so we can redirect back after login
