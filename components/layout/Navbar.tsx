@@ -1,28 +1,28 @@
+"use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
-import React from "react";
-import { cookies } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
 import UserMenu from "@/components/layout/UserMenu";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { createSupabaseBrowserClient } from "@/utils/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
-const Navbar = async () => {
-  let user = null;
+const Navbar = () => {
+  const [user, setUser] = useState<User | null>(null);
 
-  try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const { data, error } = await supabase.auth.getUser();
-
-    if (error) {
-      console.error("Error in Navbar authentication:", error.message);
-    } else {
-      user = data.user;
-    }
-  } catch (clientError) {
-    console.error("Failed to initialize Supabase client:", clientError);
-  }
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    // Get current user
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    // Listen for auth changes
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <header className="border-b">

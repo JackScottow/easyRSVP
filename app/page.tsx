@@ -1,8 +1,11 @@
+"use client";
+import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, QrCode, ArrowRight } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/utils/supabase/client";
 
 interface Testimonial {
   name: string;

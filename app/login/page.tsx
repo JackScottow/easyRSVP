@@ -36,12 +36,6 @@ function LoginContent() {
     }
   }, []);
 
-  // Debug: Log the current user after mount
-  useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
-    supabase.auth.getUser().then(console.log);
-  }, []);
-
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 

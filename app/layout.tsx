@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { QRCodeClient } from "@/app/components/QRCodeClient";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
+import SupabaseSessionInit from "@/components/SupabaseSessionInit";
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function RootLayout({
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased", openSans.className)}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <SupabaseSessionInit />
           <Navbar />
           {children}
           <Footer />
