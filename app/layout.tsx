@@ -31,7 +31,7 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.min.css" />
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased", openSans.className)}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <SupabaseSessionInit />
           <Navbar />
           {children}

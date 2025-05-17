@@ -20,7 +20,8 @@ export function Footer() {
             Contact
           </Link>
         </div>
-        <p className="text-sm text-muted-foreground flex-1 text-center">© {new Date().getFullYear()} EasyRSVP. All rights reserved.</p>
+        <div className="flex-1"></div>
+        {/* <p className="text-sm text-muted-foreground flex-1 text-center">© {new Date().getFullYear()} EasyRSVP. All rights reserved.</p> */}
       </div>
     </footer>
   );

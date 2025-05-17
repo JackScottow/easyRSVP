@@ -24,7 +24,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
   return (
     <div className="flex items-center gap-4">
       <Link href="/dashboard">
-        <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
+        <Button variant="outline" size="sm" className="text-sm  hidden sm:inline">
+          Dashboard
+        </Button>
       </Link>
       <form action={handleLogout}>
         <Button variant="outline" size="sm" type="submit">
