@@ -74,7 +74,18 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container px-4 py-6 md:py-10">
+      <main className="container px-4 pt-2 md:pt-4 pb-6 md:pb-10">
+        {/* User email display */}
+        <div className="flex justify-end md:justify-end justify-center mb-4">
+          <div className="flex items-center gap-2 bg-muted rounded-lg px-4 py-2 shadow-sm border border-border max-w-full">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12H8m8 0a4 4 0 11-8 0 4 4 0 018 0zm0 0v1a4 4 0 01-8 0v-1" />
+            </svg>
+            <span className="truncate text-sm text-muted-foreground">
+              Logged in as <span className="font-semibold text-foreground">{user.email}</span>
+            </span>
+          </div>
+        </div>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold tracking-tight">Your Events</h2>
           <Button asChild>
@@ -99,7 +110,7 @@ export default async function DashboardPage() {
               <Link key={event.id} href={`/events/${event.id}`} className="block">
                 <Card className="h-full transition-all hover:shadow-md">
                   <CardHeader>
-                    {event.image_url ? <img src={event.image_url} alt="Event" className="rounded mb-2 w-full max-w-full h-auto" style={{ display: "block", margin: "0 auto" }} /> : <div className="rounded bg-muted flex items-center justify-center mb-2 max-h-32 w-full h-24 text-muted-foreground text-sm">No image</div>}
+                    {event.image_url ? <img src={event.image_url} alt="Event" className="rounded mb-2 mx-auto max-h-60 max-w-lg w-auto h-auto" style={{ display: "block" }} /> : <div className="rounded bg-muted flex items-center justify-center mb-2 max-h-32 w-full h-24 text-muted-foreground text-sm">No image</div>}
                     <CardTitle className="line-clamp-1">{event.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
