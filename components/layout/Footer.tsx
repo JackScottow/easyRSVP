@@ -9,7 +9,7 @@ export function Footer() {
           <Calendar className="h-5 w-5 text-primary" />
           <span className="text-lg font-semibold">EasyRSVP</span>
         </div>
-        <div className="flex flex-1 items-center justify-center gap-2 text-sm">
+        <div className="flex flex-1 items-center justify-center gap-2 text-xs md:text-sm">
           <Link href="/legal" className="hover:underline">
             Terms
           </Link>
@@ -20,7 +20,7 @@ export function Footer() {
             Contact
           </Link>
         </div>
-        <div className="flex-1 text-center text-muted-foregroundtext-sm">©easyRSVP {new Date().getFullYear()}</div>
+        <div className="flex-1 text-center text-muted-foreground text-xs md:text-sm">©easyRSVP {new Date().getFullYear()}</div>
         {/* <p className="text-sm text-muted-foreground flex-1 text-center">©  EasyRSVP. All rights reserved.</p> */}
       </div>
     </footer>
