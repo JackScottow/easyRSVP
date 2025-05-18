@@ -15,6 +15,8 @@ type Event = {
   noCount: number;
   maybeCount: number;
   image_url?: string;
+  location?: string | null;
+  description?: string | null;
 };
 
 export default async function DashboardPage() {
@@ -29,7 +31,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const { data: baseEvents, error: eventsError } = await supabase.from("events").select("id, title, event_date, image_url").eq("user_id", user.id).order("event_date", { ascending: false });
+  const { data: baseEvents, error: eventsError } = await supabase.from("events").select("id, title, event_date, image_url, location, description").eq("user_id", user.id).order("event_date", { ascending: false });
 
   if (eventsError) {
     console.error("Error fetching events (handled):", eventsError.message);
@@ -67,6 +69,8 @@ export default async function DashboardPage() {
       yesCount: counts.yes,
       noCount: counts.no,
       maybeCount: counts.maybe,
+      location: event.location ?? null,
+      description: event.description ?? null,
     };
   });
 
@@ -112,6 +116,15 @@ export default async function DashboardPage() {
                   <CardHeader>
                     {event.image_url ? <img src={event.image_url} alt="Event" className="rounded mb-2 mx-auto max-h-60 max-w-lg w-auto h-auto" style={{ display: "block" }} /> : <div className="rounded bg-muted flex items-center justify-center mb-2 max-h-32 w-full h-24 text-muted-foreground text-sm">No image</div>}
                     <CardTitle className="line-clamp-1">{event.title}</CardTitle>
+                    <div className="mt-1 min-h-[20px] text-xs text-muted-foreground truncate" title={event.location || undefined}>
+                      {event.location ? (
+                        <>
+                          <span className="font-medium">Location:</span> {event.location}
+                        </>
+                      ) : (
+                        <span>&nbsp;</span>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center text-sm text-muted-foreground">
@@ -123,6 +136,9 @@ export default async function DashboardPage() {
                             day: "numeric",
                           })
                         : "Date not set"}
+                    </div>
+                    <div className="mt-2 min-h-[48px] text-xs text-muted-foreground line-clamp-3" title={event.description || undefined}>
+                      {event.description ? event.description : <span>&nbsp;</span>}
                     </div>
                   </CardContent>
                   <CardFooter>

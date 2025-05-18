@@ -43,6 +43,7 @@ export type CreateEventFormState = {
     _form?: string[]; // General form errors
   };
   success: boolean;
+  eventId?: string; // Add eventId for redirect
 };
 
 export async function createEventAction(prevState: CreateEventFormState, formData: FormData): Promise<CreateEventFormState> {
@@ -84,7 +85,7 @@ export async function createEventAction(prevState: CreateEventFormState, formDat
   const eventDateTime = new Date(`${event_date}T${event_time}`);
 
   try {
-    await prisma.event.create({
+    const newEvent = await prisma.event.create({
       data: {
         title: title,
         description: description,
@@ -94,6 +95,8 @@ export async function createEventAction(prevState: CreateEventFormState, formDat
         image_url: image_url || null, // Save image_url if provided
       },
     });
+    // Return success state and eventId for redirect
+    return { message: "Event created successfully!", success: true, errors: {}, eventId: newEvent.id };
   } catch (error) {
     // Consider more specific error handling if needed
     return {
@@ -102,14 +105,4 @@ export async function createEventAction(prevState: CreateEventFormState, formDat
       success: false,
     };
   }
-
-  // 4. Revalidate path and signal success (or redirect)
-  revalidatePath("/dashboard"); // Assuming events are shown on dashboard
-  revalidatePath("/events/create"); // Revalidate the create page itself
-
-  // Option 1: Redirect immediately (user won't see success message on this page)
-  // redirect("/dashboard");
-
-  // Option 2: Return success state to show message on the form page
-  return { message: "Event created successfully!", success: true, errors: {} };
 }

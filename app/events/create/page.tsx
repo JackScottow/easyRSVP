@@ -5,6 +5,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import imageCompression from "browser-image-compression";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +33,7 @@ function SubmitButton({ disabled }: { disabled?: boolean }) {
 
 export default function CreateEventPage() {
   const { toast } = useToast(); // Initialize toast
+  const router = useRouter();
 
   const initialState: CreateEventFormState = {
     message: null,
@@ -53,8 +55,10 @@ export default function CreateEventPage() {
   useEffect(() => {
     if (state.message) {
       if (state.success) {
-        toast({ title: "Success!", description: state.message, variant: "default" });
-        // Optionally reset form or redirect here if not done in action
+        // Immediate redirect to the new event page
+        if (state.eventId) {
+          router.replace(`/events/${state.eventId}`);
+        }
       } else {
         toast({ title: "Error", description: state.message, variant: "destructive" });
       }
