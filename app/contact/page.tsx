@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { ChevronLeft, Loader2, Github, Twitter, Linkedin } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,84 +38,87 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="container py-8 md:py-12">
-      <div className="mx-auto max-w-4xl">
-        <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">Contact Us</h1>
+    <main className="container py-10 md:py-16">
+      <div className="mx-auto max-w-3xl">
+        <div className="mb-10">
+          <Link href="/" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors mb-4">
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Back to Home
+          </Link>
+          <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center">Contact Us</h1>
+          <p className="text-muted-foreground text-center mt-3 max-w-2xl mx-auto">Have questions or feedback? We're here to help. Drop us a message and we'll get back to you as soon as possible.</p>
+        </div>
 
-        <div className="grid gap-8 md:grid-cols-2">
-          {/* Contact Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Get in Touch</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-start gap-4">
-                <Mail className="h-5 w-5 text-primary mt-1" />
-                <div>
-                  <h3 className="font-semibold">Email</h3>
-                  <p className="text-muted-foreground">support@easyrsvp.com</p>
-                </div>
+        {/* Contact Form */}
+        <Card className="border shadow-sm mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle>Send a Message</CardTitle>
+            <CardDescription>Fill out the form below and we'll respond shortly</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium flex items-center gap-1">
+                  Name <span className="text-destructive">*</span>
+                </label>
+                <Input id="name" name="name" required placeholder="Your name" className="w-full" autoComplete="name" />
               </div>
-              <div className="flex items-start gap-4">
-                <Phone className="h-5 w-5 text-primary mt-1" />
-                <div>
-                  <h3 className="font-semibold">Phone</h3>
-                  <p className="text-muted-foreground">+1 (555) 123-4567</p>
-                </div>
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium flex items-center gap-1">
+                  Email <span className="text-destructive">*</span>
+                </label>
+                <Input id="email" name="email" type="email" required placeholder="your.email@example.com" className="w-full" autoComplete="email" />
               </div>
-              <div className="flex items-start gap-4">
-                <MapPin className="h-5 w-5 text-primary mt-1" />
-                <div>
-                  <h3 className="font-semibold">Address</h3>
-                  <p className="text-muted-foreground">
-                    123 Event Street
-                    <br />
-                    San Francisco, CA 94105
-                    <br />
-                    United States
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <label htmlFor="subject" className="text-sm font-medium flex items-center gap-1">
+                  Subject <span className="text-destructive">*</span>
+                </label>
+                <Input id="subject" name="subject" required placeholder="What's this about?" className="w-full" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="space-y-2">
+                <label htmlFor="message" className="text-sm font-medium flex items-center gap-1">
+                  Message <span className="text-destructive">*</span>
+                </label>
+                <Textarea id="message" name="message" required placeholder="Your message..." className="min-h-[150px] w-full resize-y" />
+              </div>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Send Message"
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center pt-2">We respect your privacy and will never share your information.</p>
+            </form>
+          </CardContent>
+        </Card>
 
-          {/* Contact Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Send us a Message</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">
-                    Name
-                  </label>
-                  <Input id="name" name="name" required placeholder="Your name" className="w-full" />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium">
-                    Email
-                  </label>
-                  <Input id="email" name="email" type="email" required placeholder="your.email@example.com" className="w-full" />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="subject" className="text-sm font-medium">
-                    Subject
-                  </label>
-                  <Input id="subject" name="subject" required placeholder="What's this about?" className="w-full" />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="message" className="text-sm font-medium">
-                    Message
-                  </label>
-                  <Textarea id="message" name="message" required placeholder="Your message..." className="min-h-[120px] w-full" />
-                </div>
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? "Sending..." : "Send Message"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+        {/* Social Media Links */}
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle>Connect With Us</CardTitle>
+            <CardDescription>Follow us on social media</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center gap-6">
+              <a href="https://x.com/" target="_blank" rel="noopener noreferrer" className="rounded-full bg-muted p-3 hover:bg-primary/10 transition-colors">
+                <Twitter className="h-5 w-5" />
+              </a>
+              <a href="https://github.com/" target="_blank" rel="noopener noreferrer" className="rounded-full bg-muted p-3 hover:bg-primary/10 transition-colors">
+                <Github className="h-5 w-5" />
+              </a>
+              <a href="https://linkedin.com/company/" target="_blank" rel="noopener noreferrer" className="rounded-full bg-muted p-3 hover:bg-primary/10 transition-colors">
+                <Linkedin className="h-5 w-5" />
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="mt-8 text-center text-sm text-muted-foreground">
+          <p>Response time: Usually within 24-48 hours on business days.</p>
         </div>
       </div>
     </main>
