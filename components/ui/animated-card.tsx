@@ -10,9 +10,18 @@ interface AnimatedCardProps extends ComponentProps<typeof Card> {
   children: ReactNode;
   animate?: boolean;
   delay?: number;
+  disableHoverEffect?: boolean;
 }
 
-export function AnimatedCard({ children, className, animate = true, delay = 0, ...props }: AnimatedCardProps) {
+export function AnimatedCard({ children, className, animate = true, delay = 0, disableHoverEffect = false, ...props }: AnimatedCardProps) {
+  const hoverEffects = disableHoverEffect
+    ? {}
+    : {
+        whileHover: {
+          transition: { duration: 0.2, ease: "easeOut" },
+        },
+      };
+
   return (
     <motion.div
       initial={animate ? { opacity: 0, y: 20 } : false}
@@ -23,7 +32,7 @@ export function AnimatedCard({ children, className, animate = true, delay = 0, .
         delay: delay,
         ease: "easeOut",
       }}
-      {...cardHoverEffect}>
+      {...hoverEffects}>
       <Card className={cn("h-full transition-all duration-200", className)} {...props}>
         {children}
       </Card>

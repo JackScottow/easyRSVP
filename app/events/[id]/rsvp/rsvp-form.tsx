@@ -1,222 +1,200 @@
 "use client"; // Form interaction requires client component
 
-import { useFormState, useFormStatus } from "react-dom";
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-// import { rsvp_response } from "@prisma/client"; // Import enum for form values
-
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Calendar, Clock, MapPin, ThumbsDown, ThumbsUp, HelpCircle } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { motion } from "framer-motion";
+import { AnimatedSection, AnimatedItem } from "@/components/ui/animated-section";
+import { AnimatedCard } from "@/components/ui/animated-card";
+import { AnimatedButton } from "@/components/ui/animated-button";
+import { fadeIn, fadeInScale, slideIn, textVariant } from "@/utils/animations";
+import { ArrowLeft, Calendar, MapPin } from "lucide-react";
+import { rsvp_response } from "@prisma/client";
+import { toast } from "sonner";
 
-// Import the server action and state type
-import { submitRsvpAction, type RsvpFormState } from "./_actions";
-
-// Define a local enum to match the server-side rsvp_response
-export enum rsvp_response {
-  yes = "yes",
-  no = "no",
-  maybe = "maybe",
+interface EventData {
+  title: string;
+  event_date: string | Date;
+  location: string | null;
+  image_url?: string | null;
 }
 
-// Submit button component
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" className="w-full mt-6" aria-disabled={pending} disabled={pending}>
-      {pending ? "Submitting..." : "Submit RSVP"}
-    </Button>
-  );
-}
-
-// Define props for the form component
 interface RsvpFormProps {
-  event: {
-    title: string;
-    event_date: Date;
-    location: string | null;
-    image_url?: string | null;
-  };
+  event: EventData;
   eventId: string;
 }
 
-// Form component
 export function RsvpForm({ event, eventId }: RsvpFormProps) {
-  const { toast } = useToast();
-  const [hasAlreadyRsvpd, setHasAlreadyRsvpd] = useState(false);
-  const localStorageKey = `rsvpSubmitted-${eventId}`;
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [response, setResponse] = useState<"yes" | "no" | "maybe" | "">("");
+  const [comment, setComment] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const initialState: RsvpFormState = {
-    message: null,
-    errors: {},
-    success: false,
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    if (!name || !response) {
+      setError("Name and response are required");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Submit the form data
+      const res = await fetch(`/api/events/${eventId}/rsvp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          response,
+          comment: comment || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to submit RSVP");
+      }
+
+      // Show success message and redirect
+      toast.success("RSVP submitted successfully!");
+
+      // Redirect to event page
+      router.push(`/events/${eventId}?rsvp=success`);
+    } catch (err: any) {
+      setError(err.message || "An error occurred while submitting your RSVP");
+      console.error("RSVP submission error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const [state, formAction] = useFormState(submitRsvpAction, initialState);
-
-  // Show toast message on error (success is handled by showing Thank You message)
-  useEffect(() => {
-    if (state.message && !state.success) {
-      toast({ title: "Error", description: state.message, variant: "destructive" });
-    }
-  }, [state, toast]);
-
-  // Check localStorage on mount
-  useEffect(() => {
-    if (localStorage.getItem(localStorageKey)) {
-      setHasAlreadyRsvpd(true);
-    }
-  }, [localStorageKey]);
-
-  // Set localStorage on successful submission
-  useEffect(() => {
-    if (state.success) {
-      localStorage.setItem(localStorageKey, "true");
-      setHasAlreadyRsvpd(true);
-    }
-  }, [state.success, localStorageKey]);
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container px-4 py-6 md:py-10">
-        <div className="flex flex-col md:flex-row md:items-start md:gap-8 md:mx-auto md:justify-center">
-          <div className="mb-6 md:mb-0 md:w-1/3 flex-shrink-0 flex justify-center">{event.image_url ? <img src={event.image_url} alt="Event" className="rounded-lg w-full h-auto shadow" style={{ display: "block", margin: "0 auto" }} /> : <div className="rounded-lg bg-muted flex items-center justify-center max-h-60 w-full h-40 text-muted-foreground text-lg">No event image</div>}</div>
-          <div className="md:w-1/2">
-            <Card className="mx-auto">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl">{event.title}</CardTitle>
-                <CardDescription>
-                  <div className="mt-2 flex flex-col items-center gap-1 text-muted-foreground">
-                    <div className="flex items-center">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {format(new Date(event.event_date), "EEEE, MMMM d, yyyy")}
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="mr-2 h-4 w-4" />
-                      {format(new Date(event.event_date), "h:mm a")}
-                    </div>
-                    {event.location && (
-                      <div className="flex items-center">
-                        <MapPin className="mr-2 h-4 w-4" />
-                        {event.location}
-                      </div>
-                    )}
+      <header className="border-b">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="container flex h-16 items-center px-4">
+          <Link href={`/events/${eventId}`} className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Event
+          </Link>
+        </motion.div>
+      </header>
+
+      <main className="container max-w-xl px-4 py-8 md:py-12">
+        <AnimatedSection className="mb-8">
+          <motion.h1 variants={textVariant(0.1)} className="text-3xl font-bold tracking-tight text-center mb-4">
+            RSVP for {event.title}
+          </motion.h1>
+
+          <motion.div variants={fadeInScale(0.2)} className="text-center mb-6 text-muted-foreground">
+            <div className="flex items-center justify-center mb-1">
+              <Calendar className="mr-2 h-4 w-4" />
+              {typeof event.event_date === "string" ? format(new Date(event.event_date), "EEEE, MMMM d, yyyy 'at' h:mm a") : format(event.event_date, "EEEE, MMMM d, yyyy 'at' h:mm a")}
+            </div>
+            {event.location && (
+              <div className="flex items-center justify-center">
+                <MapPin className="mr-2 h-4 w-4" />
+                {event.location}
+              </div>
+            )}
+          </motion.div>
+
+          {event.image_url && (
+            <motion.div className="mb-6 flex justify-center" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", duration: 0.6 }}>
+              <img src={event.image_url} alt="Event" className="rounded-lg max-w-full h-auto shadow max-h-60" style={{ display: "block" }} />
+            </motion.div>
+          )}
+        </AnimatedSection>
+
+        <AnimatedCard className="w-full" animate={false}>
+          <form onSubmit={handleSubmit}>
+            <CardHeader>
+              <CardTitle>Your Response</CardTitle>
+              <CardDescription>Please fill out the details below to RSVP</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {error && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-3 mb-3 rounded-md bg-red-50 text-red-600 text-sm">
+                  {error}
+                </motion.div>
+              )}
+
+              <motion.div variants={fadeIn("right", 0.1)}>
+                <Label htmlFor="name" className="text-muted-foreground mb-1.5 block">
+                  Name <span className="text-red-500">*</span>
+                </Label>
+                <Input id="name" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} required />
+              </motion.div>
+
+              <motion.div variants={fadeIn("right", 0.2)}>
+                <Label htmlFor="email" className="text-muted-foreground mb-1.5 block">
+                  Email (optional)
+                </Label>
+                <Input id="email" type="email" placeholder="Your email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </motion.div>
+
+              <motion.div variants={fadeIn("right", 0.3)}>
+                <Label className="text-muted-foreground mb-1.5 block">
+                  Will you attend? <span className="text-red-500">*</span>
+                </Label>
+                <RadioGroup value={response} onValueChange={(value) => setResponse(value as any)}>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="yes" id="yes" />
+                    <Label htmlFor="yes" className="text-green-600 font-medium">
+                      Yes, I'll be there
+                    </Label>
                   </div>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Show Thank You message on success OR if already RSVP'd via localStorage */}
-                {state.success || hasAlreadyRsvpd ? (
-                  <div className="py-6 text-center space-y-4">
-                    <div className="text-2xl font-semibold">Thank you!</div>
-                    <p>{state.message || "You have already RSVP'd for this event."}</p>
-                    <Button asChild className="mt-4">
-                      <Link href={`/events/${eventId}`}>View Event Details</Link>
-                    </Button>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="no" id="no" />
+                    <Label htmlFor="no" className="text-red-600 font-medium">
+                      No, I can't make it
+                    </Label>
                   </div>
-                ) : (
-                  /* Bind form action */
-                  <form action={formAction} className="space-y-6">
-                    {/* Hidden input for event ID */}
-                    <input type="hidden" name="eventId" value={eventId} />
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="maybe" id="maybe" />
+                    <Label htmlFor="maybe" className="text-amber-600 font-medium">
+                      Maybe, I'm not sure yet
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </motion.div>
 
-                    {/* Display general form error */}
-                    {state.errors?._form && <p className="text-sm font-medium text-destructive">{state.errors._form.join(", ")}</p>}
-
-                    {/* Name Input */}
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Your Name</Label>
-                      <Input
-                        id="name"
-                        name="name" // Add name attribute
-                        placeholder="Enter your full name"
-                        required
-                        aria-describedby="name-error"
-                      />
-                      {state.errors?.name && (
-                        <p id="name-error" className="text-sm font-medium text-destructive">
-                          {state.errors.name.join(", ")}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Email Input */}
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Your Email</Label>
-                      <Input
-                        id="email"
-                        name="email" // Add name attribute
-                        type="email" // Set input type to email
-                        placeholder="Enter your email address"
-                        required
-                        aria-describedby="email-error"
-                      />
-                      {state.errors?.email && (
-                        <p id="email-error" className="text-sm font-medium text-destructive">
-                          {state.errors.email.join(", ")}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Response Radio Group */}
-                    <div className="space-y-2">
-                      <Label>Will you attend?</Label>
-                      <RadioGroup name="response" aria-describedby="response-error">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value={rsvp_response.yes} id="rsvp-yes" />
-                          <Label htmlFor="rsvp-yes" className="flex items-center gap-2 font-normal cursor-pointer">
-                            <ThumbsUp className="h-4 w-4" /> Yes
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value={rsvp_response.no} id="rsvp-no" />
-                          <Label htmlFor="rsvp-no" className="flex items-center gap-2 font-normal cursor-pointer">
-                            <ThumbsDown className="h-4 w-4" /> No
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value={rsvp_response.maybe} id="rsvp-maybe" />
-                          <Label htmlFor="rsvp-maybe" className="flex items-center gap-2 font-normal cursor-pointer">
-                            <HelpCircle className="h-4 w-4" /> Maybe
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                      {state.errors?.response && (
-                        <p id="response-error" className="text-sm font-medium text-destructive">
-                          {state.errors.response.join(", ")}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Optional Comment Textarea */}
-                    <div className="space-y-2">
-                      <Label htmlFor="comment">Comment (Optional)</Label>
-                      <Textarea
-                        id="comment"
-                        name="comment" // Add name attribute
-                        placeholder="Add any comments (e.g., dietary restrictions)"
-                        aria-describedby="comment-error"
-                      />
-                      {state.errors?.comment && (
-                        <p id="comment-error" className="text-sm font-medium text-destructive">
-                          {state.errors.comment.join(", ")}
-                        </p>
-                      )}
-                    </div>
-
-                    <SubmitButton />
-                  </form>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              <motion.div variants={fadeIn("right", 0.4)}>
+                <Label htmlFor="comment" className="text-muted-foreground mb-1.5 block">
+                  Comment (optional)
+                </Label>
+                <Textarea id="comment" placeholder="Add a comment or message for the host" value={comment} onChange={(e) => setComment(e.target.value)} className="min-h-[100px]" />
+              </motion.div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                <Button variant="outline" type="button" onClick={() => router.push(`/events/${eventId}`)}>
+                  Cancel
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Submitting..." : "Submit RSVP"}
+                </Button>
+              </motion.div>
+            </CardFooter>
+          </form>
+        </AnimatedCard>
       </main>
     </div>
   );

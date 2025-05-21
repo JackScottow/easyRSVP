@@ -90,11 +90,12 @@ export const textVariant = (delay: number = 0) => {
   };
 };
 
+// More subtle hover effect with minimal shadow
 export const cardHoverEffect = {
   whileHover: {
-    scale: 1.03,
-    y: -5,
-    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.1)",
-    transition: { duration: 0.3, ease: "easeOut" },
+    scale: 1.02,
+    y: -2,
+    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.05)",
+    transition: { duration: 0.2, ease: "easeOut" },
   },
 };
